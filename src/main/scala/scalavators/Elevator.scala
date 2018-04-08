@@ -36,7 +36,7 @@ case class Elevator(id: ElevatorId,
     maybeDestinations = maybeDestinations.filter(_.floors.nonEmpty)
   }
 
-  private def nextStop(destinations: Destinations) = {
+  def nextStop(destinations: Destinations): Floor = {
     destinations.floors.keySet.maxBy(it => destinations.direction match {
       case Up => -it.number
       case Down => it.number
