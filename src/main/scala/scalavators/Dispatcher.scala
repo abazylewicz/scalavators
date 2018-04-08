@@ -10,8 +10,11 @@ trait Dispatching {
   */
 object NaiveDispatcher extends Dispatching {
   override def dispatch(request: Request, elevators: Iterable[Elevator]): Option[Elevator] = {
-    val elevatorOpt = elevators.toSeq.sortBy(_.destinations.size).headOption
-    elevatorOpt.foreach(_.addDestination(request.floor))
+    val elevatorOpt = elevators.toSeq
+        .filter(_.accepts(request))
+      .sortBy(_.maybeDestinations.map(_.floors.size).getOrElse(0))
+      .headOption
+    elevatorOpt.foreach(_.addDestination(request.from, request.to))
     elevatorOpt
   }
 }

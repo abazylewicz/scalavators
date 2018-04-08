@@ -9,51 +9,44 @@ class ElevatorTest extends FlatSpec with Matchers {
   val anyId = ElevatorId(1)
 
   "Adding destination" should "add destination when no previous destinations specified" in {
-    val elevator = Elevator(anyId, Floor(0), SortedSet[Floor]())
-    elevator.addDestination(Floor(2))
-    elevator.destinations should contain only Floor(2)
+    val elevator = Elevator(anyId, Floor(0))
+    elevator.addDestination(Floor(2), Floor(3))
+    elevator.maybeDestinations shouldBe defined
+    elevator.maybeDestinations.get.floors should contain key Floor(2)
   }
 
-  it should "skip duplicate destinations" in {
-    val elevator = Elevator(anyId, Floor(0), SortedSet[Floor](Floor(1)))
-    elevator.addDestination(Floor(1))
-    elevator.destinations should contain only Floor(1)
-  }
-
-  it should "ignore current floor" in {
-    val elevator = Elevator(anyId, Floor(0), SortedSet[Floor]())
-    elevator.addDestination(Floor(0))
-    elevator.destinations shouldBe empty
-  }
-
-  it should "keep destinations sorted" in {
-    val elevator = Elevator(anyId, Floor(0), SortedSet[Floor](Floor(1), Floor(3)))
-    elevator.addDestination(Floor(2))
-    elevator.destinations should contain inOrder (Floor(1), Floor(2), Floor(3))
+  it should "ignore current floor and add target floor" in {
+    val elevator = Elevator(anyId, Floor(0))
+    elevator.addDestination(Floor(0), Floor(1))
+    elevator.maybeDestinations.get.floors should contain (Floor(1) -> Set())
   }
 
   "Updating elevator" should "move elevator toward upward destination" in {
-    val elevator = Elevator(anyId, Floor(0), SortedSet[Floor](Floor(2)))
+    val elevator = Elevator(anyId, Floor(0))
+    elevator.addDestination(Floor(2), Floor(3))
     elevator.update()
     elevator.floor shouldBe Floor(1)
   }
 
   it should "move elevator toward downward destination" in {
-    val elevator = Elevator(anyId, Floor(3), SortedSet[Floor](Floor(0)))
+    val elevator = Elevator(anyId, Floor(3))
+    elevator.addDestination(Floor(1), Floor(3))
     elevator.update()
     elevator.floor shouldBe Floor(2)
   }
 
   it should "keep the destination when it is not reached" in {
-    val elevator = Elevator(anyId, Floor(3), SortedSet[Floor](Floor(0)))
+    val elevator = Elevator(anyId, Floor(3))
+    elevator.addDestination(Floor(1), Floor(3))
     elevator.update()
-    elevator.destinations should contain only Floor(0)
+    elevator.maybeDestinations.get.floors should contain key Floor(1)
   }
 
-  it should "remove the destination after it is reached" in {
-    val elevator = Elevator(anyId, Floor(0), SortedSet[Floor](Floor(1), Floor(2)))
+  it should "remove the destination after it is reached and add its target" in {
+    val elevator = Elevator(anyId, Floor(0))
+    elevator.addDestination(Floor(1), Floor(3))
     elevator.update()
-    elevator.destinations should contain only Floor(2)
+    elevator.maybeDestinations.get.floors should contain (Floor(3) -> Set())
   }
 
 }
